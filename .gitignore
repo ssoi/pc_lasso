@@ -1,3 +1,4 @@
 *.csv
+*.txt
 *.swp
 notebooks/.ipynb_checkpoints/*
