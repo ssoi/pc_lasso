@@ -28,8 +28,8 @@ class TFLasso(BaseEstimator, ClassifierMixin):
             num_batches = int(X.shape[0]/self.batch_size)
             for epoch in range(self.epochs):
                 for _ in range(num_batches):
-                    X_batch, y_batch, _get_batch(X, y, batch_size)
-                    sess.run([optimizer, self._tf_model], feed_dict{X: X_batch, y: y_batch})
+                    X_batch, y_batch = _get_batch(X, y, self.batch_size)
+                    sess.run([optimizer, self._tf_model], feed_dict={X: X_batch, y: y_batch})
 
     def predict(self):
         pass
@@ -40,14 +40,14 @@ class TFLasso(BaseEstimator, ClassifierMixin):
 
         num_obs, num_features = X.shape
 
-        X_tensor = tf.placeholder(tf.float32, [batch_size, num_features], name='X')
-        y_tensor = tf.placeholder(tf.float32, [batch_size, 1], name='y')
+        X_tensor = tf.placeholder(tf.float32, [self.batch_size, num_features], name='X')
+        y_tensor = tf.placeholder(tf.float32, [self.batch_size, 1], name='y')
         
         beta = tf.Variable(tf.random_normal(shape=[num_features, 1], stddev=0.1), name='coefs')        
         beta_0 = tf.Variable(tf.random_normal(shape=[1, 1], stddev=0.1), name='intercept')
 
-        logits = tf.matmul(X_tensor, beta) + beta_0 + beta * 
-        cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits)
+        logits = tf.matmul(X_tensor, beta) + beta_0
+        cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=logits)
         loss = tf.reduce_mean(cross_entropy) + alpha * tf.norm(beta)
 
         self._tf_model = loss
